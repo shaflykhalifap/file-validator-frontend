@@ -1,0 +1,21 @@
+# Prioritaskan index.html di atas index.php
+DirectoryIndex index.html index.php
+
+# Handle React Router — semua route arahkan ke index.html
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Jangan redirect file/folder yang benar-benar ada
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Kecualikan folder inbox, error, archive, api
+    RewriteCond %{REQUEST_URI} !^/inbox/
+    RewriteCond %{REQUEST_URI} !^/error/
+    RewriteCond %{REQUEST_URI} !^/archive/
+    RewriteCond %{REQUEST_URI} !^/api/
+
+    # Semua route React (login, dashboard, dll) → index.html
+    RewriteRule ^ index.html [L]
+</IfModule>

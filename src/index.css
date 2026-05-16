@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Geist:wght@300;400;500;600&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* ── Core Palette: Black & White dominant, green accent ── */
+  --black:        #0a0a0a;
+  --gray-950:     #111111;
+  --gray-900:     #1a1a1a;
+  --gray-800:     #262626;
+  --gray-700:     #333333;
+  --gray-600:     #525252;
+  --gray-500:     #737373;
+  --gray-400:     #a3a3a3;
+  --gray-300:     #d4d4d4;
+  --gray-200:     #e5e5e5;
+  --gray-100:     #f5f5f5;
+  --gray-50:      #fafafa;
+  --white:        #ffffff;
+
+  /* Accent: sharp green */
+  --accent:       #16a34a;
+  --accent-dark:  #15803d;
+  --accent-light: #f0fdf4;
+  --accent-mid:   #bbf7d0;
+  --accent-text:  #14532d;
+
+  /* Semantic */
+  --error:        #dc2626;
+  --error-bg:     #fef2f2;
+  --error-border: #fecaca;
+  --warning:      #d97706;
+  --warning-bg:   #fffbeb;
+
+  /* Legacy aliases for backwards compatibility */
+  --white:           #ffffff;
+  --off-white:       #fafafa;
+  --stone-50:        #fafafa;
+  --stone-100:       #f5f5f5;
+  --stone-200:       #e5e5e5;
+  --stone-300:       #d4d4d4;
+  --stone-400:       #a3a3a3;
+  --stone-600:       #525252;
+  --stone-900:       #0a0a0a;
+  --success-bg:      #f0fdf4;
+
+  /* Typography */
+  --font-display: 'Plus Jakarta Sans', sans-serif;
+  --font-body:    'Geist', sans-serif;
+
+  /* Spacing */
+  --sidebar-w:    220px;
+
+  /* Radius */
+  --radius-sm:  4px;
+  --radius-md:  8px;
+  --radius-lg:  12px;
+  --radius-xl:  16px;
+
+  /* Shadow */
+  --shadow-sm:  0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md:  0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg:  0 8px 24px rgba(0,0,0,0.12);
+}
+
+html, body, #root {
+  height: 100%;
+  font-family: var(--font-body);
+  background: var(--gray-100);
+  color: var(--gray-900);
+  -webkit-font-smoothing: antialiased;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+button  { cursor: pointer; font-family: var(--font-body); }
+input, select, textarea { font-family: var(--font-body); }
+a { text-decoration: none; }
+
+/* Scrollbar */
+::-webkit-scrollbar       { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gray-400); }
+
+/* Animations */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
