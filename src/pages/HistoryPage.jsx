@@ -47,55 +47,6 @@ function _trigger(content, filename, mime){
   document.body.removeChild(a); URL.revokeObjectURL(url)
 }
 
-function dlErrorReport(log){
-  if(!log.error_details?.length) return
-  const byRow={}
-  log.error_details.forEach(e=>{
-    const k=e.row===null?'FILE':`ROW_${e.row}`
-    if(!byRow[k]) byRow[k]=[]
-    byRow[k].push(e)
-  })
-  const lines=[
-    '='.repeat(60),
-    'FILE VALIDATOR — ERROR REPORT',
-    `File    : ${log.filename}`,
-    `Sumber  : ${SOURCE_LABEL[log.source]||log.source}`,
-    `Oleh    : ${log.validated_by||'-'}`,
-    `Waktu   : ${formatWIB(log.validated_at)}`,
-    `Total   : ${log.total_rows} baris | ${log.total_errors} error`,
-    '='.repeat(60),''
-  ]
-  Object.entries(byRow).forEach(([k,errs])=>{
-    lines.push(k==='FILE'?'[LEVEL FILE]':`[${k.replace('_',' ')}]`)
-    errs.forEach(e=>lines.push(`  ${e.column?'Kolom: '+e.column+' | ':''}${e.message}`))
-    lines.push('')
-  })
-  _trigger(lines.join('\n'), `error_report_${_safeName(log.filename)}.txt`, 'text/plain')
-}
-
-function dlFileError(log){
-  if(!log.error_details?.length) return
-  const dataErrors=log.error_details.filter(e=>e.row!==null&&e.row>1)
-  const headerErrors=log.error_details.filter(e=>e.row===null||e.row===1)
-  const tsvRows=[['No. Baris','Kolom Bermasalah','Pesan Error'].join('\t')]
-  log.error_details.filter(e=>e.row===null).forEach(e=>
-    tsvRows.push(['[FILE]',e.column||'—',e.message].join('\t')))
-  log.error_details.filter(e=>e.row===1).forEach(e=>
-    tsvRows.push([`Baris 1 (Header)`,e.column||'—',e.message].join('\t')))
-  const sorted=[...dataErrors].sort((a,b)=>(a.row||0)-(b.row||0))
-  sorted.forEach(e=>tsvRows.push([`Baris ${e.row}`,e.column||'—',e.message].join('\t')))
-  const notes=headerErrors.map(e=>`# ${e.message}`).join('\n')
-  const content=[
-    `# File Error — ${log.filename}`,
-    `# Dibuat: ${new Date().toLocaleString('id-ID')}`,
-    `# Total baris data: ${log.total_rows} | Total error: ${log.total_errors}`,
-    notes,'',
-    ...tsvRows
-  ].join('\n')
-  _trigger(content, `file_error_${_safeName(log.filename)}.tsv`, 'text/tab-separated-values')
-}
-
-
 async function dlFileErrorXlsx(log){
   if(!log.error_details?.length) return
 
@@ -422,16 +373,6 @@ const css = `
     border: 1px solid;
     line-height: 1.2;
   }
-  .dl-btn-report {
-    border-color: var(--gray-200);
-    background: var(--white); color: var(--gray-600);
-  }
-  .dl-btn-report:hover { border-color: var(--gray-400); color: var(--gray-900); }
-  .dl-btn-tsv {
-    border-color: var(--accent-mid);
-    background: var(--accent-light); color: var(--accent-text);
-  }
-  .dl-btn-tsv:hover { background: #dcfce7; }
   .dl-btn-xlsx {
     border-color: #bbf7d0;
     background: #f0fdf4; color: #166534;
@@ -595,12 +536,6 @@ function HistRow({ log }) {
         <td className="col-dl">
           {hasErrors ? (
             <div className="dl-btn-group">
-              <button className="dl-btn dl-btn-report" onClick={() => dlErrorReport(log)} title="Download ringkasan error (teks)">
-                ↓ Report
-              </button>
-              <button className="dl-btn dl-btn-tsv" onClick={() => dlFileError(log)} title="Download file error (.tsv)">
-                ↓ TSV
-              </button>
               <button className="dl-btn dl-btn-xlsx" onClick={async () => await dlFileErrorXlsx(log)} title="Download File Error (.xlsx) — 2 sheet">
                 ↓ Excel
               </button>
