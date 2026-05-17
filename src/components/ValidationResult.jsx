@@ -7,63 +7,7 @@ async function loadXLSX() {
 }
 
 // ═══════════════════════════════════════════════════════
-//  DOWNLOAD 1: Error Report (text summary)
-// ═══════════════════════════════════════════════════════
-function downloadErrorReport(result) {
-  if (!result.errors?.length) return
-
-  const byRow = {}
-  result.errors.forEach(e => {
-    const key = e.row === null ? 'FILE' : `ROW_${e.row}`
-    if (!byRow[key]) byRow[key] = []
-    byRow[key].push(e)
-  })
-
-  const lines = []
-  lines.push('='.repeat(60))
-  lines.push('FILE VALIDATOR — ERROR REPORT')
-  lines.push(`File    : ${result.file || 'unknown'}`)
-  lines.push(`Folder  : ${result.folder || '-'}`)
-  lines.push(`Total   : ${result.total_rows} baris data`)
-  lines.push(`Error   : ${result.errors.filter(e => e.level !== 'warn').length} error ditemukan`)
-  lines.push(`Warning : ${result.errors.filter(e => e.level === 'warn').length} warning`)
-  lines.push(`Dibuat  : ${new Date().toLocaleString('id-ID')}`)
-  lines.push('='.repeat(60))
-  lines.push('')
-
-  Object.entries(byRow).forEach(([key, errs]) => {
-    lines.push(key === 'FILE' ? '[LEVEL FILE]' : `[${key.replace('_', ' ')}]`)
-    errs.forEach(e => {
-      const prefix = e.level === 'warn' ? '[WARN] ' : ''
-      const col = e.column ? `Kolom: ${e.column} | ` : ''
-      lines.push(`  ${prefix}${col}${e.message.replace('[WARN] ', '')}`)
-    })
-    lines.push('')
-  })
-
-  _triggerDownload(lines.join('\n'), `error_report_${_safeName(result.file)}.txt`, 'text/plain')
-}
-
-// ═══════════════════════════════════════════════════════
-//  DOWNLOAD 2: File Error TSV
-// ═══════════════════════════════════════════════════════
-function downloadFileError(result) {
-  if (!result.errors?.length) return
-  const dataErrors = result.errors.filter(e => e.row !== null && e.row > 1)
-  const headerErrors = result.errors.filter(e => e.row === null || e.row === 1)
-  const tsvRows = [['No. Baris', 'Kolom Bermasalah', 'Level', 'Pesan Error'].join('\t')]
-  result.errors.filter(e => e.row === null).forEach(e =>
-    tsvRows.push(['[FILE]', e.column || '—', e.level === 'warn' ? 'WARN' : 'ERROR', e.message.replace('[WARN] ', '')].join('\t')))
-  result.errors.filter(e => e.row === 1).forEach(e =>
-    tsvRows.push([`Baris 1 (Header)`, e.column || '—', e.level === 'warn' ? 'WARN' : 'ERROR', e.message.replace('[WARN] ', '')].join('\t')))
-  const sorted = [...dataErrors].sort((a, b) => (a.row || 0) - (b.row || 0))
-  sorted.forEach(e => tsvRows.push([`Baris ${e.row}`, e.column || '—', e.level === 'warn' ? 'WARN' : 'ERROR', e.message.replace('[WARN] ', '')].join('\t')))
-  const content = [`# File Error — ${result.file || 'unknown'}`, `# Dibuat: ${new Date().toLocaleString('id-ID')}`, '', ...tsvRows].join('\n')
-  _triggerDownload(content, `file_error_${_safeName(result.file)}.tsv`, 'text/tab-separated-values')
-}
-
-// ═══════════════════════════════════════════════════════
-//  DOWNLOAD 3: File Error Excel 2 sheet (lazy SheetJS)
+//  DOWNLOAD: File Error Excel 2 sheet (lazy SheetJS)
 // ═══════════════════════════════════════════════════════
 async function downloadFileErrorXlsx(result) {
   if (!result.errors?.length) return
@@ -163,22 +107,11 @@ function DownloadButtons({ result, compact = false }) {
   )
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, flexWrap: 'wrap' }}>
-      <button onClick={e => { e.stopPropagation(); downloadErrorReport(result) }} style={s}
-        onMouseEnter={e => Object.assign(e.currentTarget.style, { borderColor: 'var(--gray-400)', color: 'var(--gray-800)' })}
-        onMouseLeave={e => Object.assign(e.currentTarget.style, { borderColor: 'var(--gray-200)', color: 'var(--gray-600)' })}>
-        <DownIcon /> Report
-      </button>
-      <button onClick={e => { e.stopPropagation(); downloadFileError(result) }}
-        style={{ ...s, color: 'var(--accent)', borderColor: 'var(--accent-mid)', background: 'var(--accent-light)' }}
-        onMouseEnter={e => Object.assign(e.currentTarget.style, { background: '#dcfce7', borderColor: 'var(--accent)' })}
-        onMouseLeave={e => Object.assign(e.currentTarget.style, { background: 'var(--accent-light)', borderColor: 'var(--accent-mid)' })}>
-        <DownIcon /> TSV
-      </button>
       <button onClick={async e => { e.stopPropagation(); await downloadFileErrorXlsx(result) }}
         style={{ ...s, color: '#166534', borderColor: '#bbf7d0', background: '#f0fdf4' }}
         onMouseEnter={e => Object.assign(e.currentTarget.style, { background: '#dcfce7' })}
         onMouseLeave={e => Object.assign(e.currentTarget.style, { background: '#f0fdf4' })}>
-        <DownIcon /> Excel
+        <DownIcon /> Download Excel
       </button>
     </div>
   )
@@ -422,4 +355,4 @@ export default function ValidationResult({ data }) {
   )
 }
 
-export { downloadErrorReport, downloadFileError, downloadFileErrorXlsx, DownloadButtons, _safeName, _triggerDownload }
+export { downloadFileErrorXlsx, DownloadButtons, _safeName, _triggerDownload }
