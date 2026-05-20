@@ -740,9 +740,10 @@ export default function CustomDownloadModal({ result, onClose }) {
   const downloadSearchTSV = () => {
     const { foundRows } = searchResult
     if (!foundRows.length) return
-    const rows = [[...headerCols, 'Failure Message']]
-    foundRows.forEach(({ cols, msgs }) => {
-      rows.push([...cols, msgs.join(' | ')])
+    // TSV tidak menyertakan Failure Message — hanya data asli file
+    const rows = [headerCols]
+    foundRows.forEach(({ cols }) => {
+      rows.push(cols)
     })
     const tsv = rows.map(r => r.join('\t')).join('\n')
     const blob = new Blob(['\uFEFF' + tsv], { type: 'text/tab-separated-values;charset=utf-8' })
@@ -798,14 +799,8 @@ export default function CustomDownloadModal({ result, onClose }) {
   // ── Download TSV ──
   const downloadTSV = () => {
     const { rows } = buildOutputRows()
-    const sortedNums = [...selected].sort((a, b) => a - b)
-    const withMsg = rows.map((cols, i) => {
-      if (i === 0) return [...cols, 'Failure Message']
-      const rowNum = sortedNums[i - 1]
-      const msgs = (errorMap[rowNum] || []).join(' | ')
-      return [...cols, msgs]
-    })
-    const tsv = withMsg.map(r => r.join('\t')).join('\n')
+    // TSV tidak menyertakan Failure Message — hanya data asli file
+    const tsv = rows.map(r => r.join('\t')).join('\n')
     const blob = new Blob(['\uFEFF' + tsv], { type: 'text/tab-separated-values;charset=utf-8' })
     triggerBlob(blob, `custom_${_safeName(filename)}.tsv`)
   }
