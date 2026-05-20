@@ -230,7 +230,7 @@ function FileCard({ result }) {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
             {allIssues.length > 0 && <DownloadButtons result={result} />}
-            {allIssues.length > 0 && result.raw_lines?.length > 0 && (
+            {result.raw_lines?.length > 0 && (
               <button
                 onClick={e => { e.stopPropagation(); setShowCustom(true) }}
                 style={{
