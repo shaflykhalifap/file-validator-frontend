@@ -485,14 +485,33 @@ function ErrorDetail({ errors, colSpan }) {
 function HistRow({ log }) {
   const [expanded, setExpanded]   = useState(false)
   const [showCustom, setShowCustom] = useState(false)
+  const [rawLines, setRawLines]   = useState(null)
+  const [loadingRaw, setLoadingRaw] = useState(false)
   const hasErrors  = log.total_errors > 0
   const warnCount  = (log.error_details || []).filter(e => e.level === 'warn').length
+
+  // Lazy-fetch raw_lines saat user klik tombol Kustom
+  // raw_lines tidak disertakan di query riwayat untuk performa
+  const handleOpenCustom = async () => {
+    if (!rawLines) {
+      setLoadingRaw(true)
+      try {
+        const res = await api.get(`/validate/logs/${log.id}/raw_lines`)
+        setRawLines(res.data.raw_lines || null)
+      } catch (e) {
+        console.error('Gagal fetch raw_lines:', e)
+      } finally {
+        setLoadingRaw(false)
+      }
+    }
+    setShowCustom(true)
+  }
 
   // Buat object result yang kompatibel dengan CustomDownloadModal
   const resultForModal = {
     file:      log.filename,
     errors:    log.error_details || [],
-    raw_lines: log.raw_lines || null,   // dari DB jika tersedia
+    raw_lines: rawLines,   // diisi setelah lazy-fetch
     total_rows: log.total_rows,
     folder:    log.source,
   }
@@ -534,28 +553,28 @@ function HistRow({ log }) {
           )}
         </td>
         <td className="col-dl">
-          {hasErrors ? (
-            <div className="dl-btn-group">
+          <div className="dl-btn-group">
+            {hasErrors && (
               <button className="dl-btn dl-btn-xlsx" onClick={async () => await dlFileErrorXlsx(log)} title="Download File Error (.xlsx) — 2 sheet">
                 ↓ Excel
               </button>
-              <button
-                className="dl-btn"
-                onClick={() => setShowCustom(true)}
-                title={log.raw_lines ? 'Pilih baris yang ingin didownload' : 'Download daftar error (data lama — validasi ulang untuk data lengkap)'}
-                style={{
-                  borderColor: 'var(--gray-800)',
-                  background: 'var(--gray-900)',
-                  color: 'var(--white)',
-                  opacity: 1,
-                }}
-              >
-                ⊞ Kustom
-              </button>
-            </div>
-          ) : (
-            <span style={{fontSize:11,color:'var(--gray-300)'}}>—</span>
-          )}
+            )}
+            <button
+              className="dl-btn"
+              onClick={handleOpenCustom}
+              disabled={loadingRaw}
+              title="Pilih baris yang ingin didownload (TSV)"
+              style={{
+                borderColor: 'var(--gray-800)',
+                background: loadingRaw ? 'var(--gray-400)' : 'var(--gray-900)',
+                color: 'var(--white)',
+                opacity: 1,
+                cursor: loadingRaw ? 'wait' : 'pointer',
+              }}
+            >
+              {loadingRaw ? '...' : '⊞ Kustom'}
+            </button>
+          </div>
         </td>
         <td className="col-time">
           <span className="time-text">{formatWIB(log.validated_at)}</span>
