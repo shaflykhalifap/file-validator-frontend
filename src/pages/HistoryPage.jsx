@@ -485,33 +485,14 @@ function ErrorDetail({ errors, colSpan }) {
 function HistRow({ log }) {
   const [expanded, setExpanded]   = useState(false)
   const [showCustom, setShowCustom] = useState(false)
-  const [rawLines, setRawLines]   = useState(null)
-  const [loadingRaw, setLoadingRaw] = useState(false)
   const hasErrors  = log.total_errors > 0
   const warnCount  = (log.error_details || []).filter(e => e.level === 'warn').length
-
-  // Lazy-fetch raw_lines saat user klik tombol Kustom
-  // raw_lines tidak disertakan di query riwayat untuk performa
-  const handleOpenCustom = async () => {
-    if (!rawLines) {
-      setLoadingRaw(true)
-      try {
-        const res = await api.get(`/validate/logs/${log.id}/raw_lines`)
-        setRawLines(res.data.raw_lines || null)
-      } catch (e) {
-        console.error('Gagal fetch raw_lines:', e)
-      } finally {
-        setLoadingRaw(false)
-      }
-    }
-    setShowCustom(true)
-  }
 
   // Buat object result yang kompatibel dengan CustomDownloadModal
   const resultForModal = {
     file:      log.filename,
     errors:    log.error_details || [],
-    raw_lines: rawLines,   // diisi setelah lazy-fetch
+    raw_lines: log.raw_lines || null,
     total_rows: log.total_rows,
     folder:    log.source,
   }
@@ -561,18 +542,16 @@ function HistRow({ log }) {
             )}
             <button
               className="dl-btn"
-              onClick={handleOpenCustom}
-              disabled={loadingRaw}
+              onClick={() => setShowCustom(true)}
               title="Pilih baris yang ingin didownload (TSV)"
               style={{
                 borderColor: 'var(--gray-800)',
-                background: loadingRaw ? 'var(--gray-400)' : 'var(--gray-900)',
+                background: 'var(--gray-900)',
                 color: 'var(--white)',
                 opacity: 1,
-                cursor: loadingRaw ? 'wait' : 'pointer',
               }}
             >
-              {loadingRaw ? '...' : '⊞ Kustom'}
+              ⊞ Kustom
             </button>
           </div>
         </td>
