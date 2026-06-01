@@ -4,16 +4,10 @@ import api from '../api/client'
 const AuthContext = createContext(null)
 
 // Permission map per role
-// 'admin' = semua akses
-// 'user'  = semua akses  
+// 'admin'        = semua akses
 // 'content_team' = hanya master product
 export const ROLE_PERMISSIONS = {
   admin: {
-    validate: ['price', 'inventory', 'master'],
-    history:  ['price', 'inventory', 'master'],
-    dashboard: true,
-  },
-  user: {
     validate: ['price', 'inventory', 'master'],
     history:  ['price', 'inventory', 'master'],
     dashboard: true,
@@ -27,8 +21,8 @@ export const ROLE_PERMISSIONS = {
 
 export function canAccess(user, resource, type = null) {
   if (!user) return false
-  const role = user.role || 'user'
-  const perms = ROLE_PERMISSIONS[role] || ROLE_PERMISSIONS.user
+  const role = user.role || 'admin'
+  const perms = ROLE_PERMISSIONS[role] || ROLE_PERMISSIONS.admin
   if (resource === 'dashboard') return perms.dashboard
   if (resource === 'validate') return type ? perms.validate.includes(type) : perms.validate.length > 0
   if (resource === 'history') return type ? perms.history.includes(type) : perms.history.length > 0
