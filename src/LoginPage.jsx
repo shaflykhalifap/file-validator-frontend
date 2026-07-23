@@ -514,16 +514,6 @@ export default function LoginPage() {
               {errors.password && <span className="field-error"><IconAlert />{errors.password}</span>}
             </div>
 
-            {/* Options */}
-            <div className="form-options">
-              <div className="remember-wrap" onClick={() => setRemember(v => !v)}>
-                <div className={`remember-check${remember ? " checked" : ""}`}>
-                  {remember && <IconCheck />}
-                </div>
-                <span className="remember-label">Ingat saya</span>
-              </div>
-              <button className="forgot-link" type="button">Lupa password?</button>
-            </div>
 
             {/* Submit */}
             <button className="submit-btn" onClick={handleSubmit} disabled={loading} type="button">
