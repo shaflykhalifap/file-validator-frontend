@@ -57,22 +57,47 @@ function parseRange(input, maxRow) {
 //               PARENT/GENERIC/SPU
 //
 function detectSearchCol(filename, headerCols) {
-  // Aturan pencarian berdasarkan POSISI kolom:
-  //   Price     → kolom PERTAMA (index 0): PARENT/GENERIC/SPU atau GENERIC
-  //   Inventory → kolom KEDUA  (index 1): ItemNumber atau SKU
-  //   Master    → kolom KEDUA  (index 1): PARENT/GENERIC/SPU
-  const fn = (filename || '').toLowerCase()
+  // Deteksi jenis file berdasarkan ISI HEADER terlebih dahulu
+  // agar tidak bergantung pada nama file yang bisa bervariasi
+  const headers = headerCols.map(h => (h || '').toLowerCase().trim())
 
-  if (fn.includes('inventory') || fn.includes('inv_') || fn.includes('_inv') ||
-      fn.includes('iab') || fn.includes('inv__')) {
-    // Inventory: selalu kolom ke-2 (index 1)
+  // Inventory V1: header[0]=warehouse, header[1]=itemnumber
+  // Inventory V2: header[0]=storecode, header[1]=sku
+  const isInventory =
+    headers.includes('itemnumber') ||
+    headers.includes('sku') ||
+    headers.includes('warehouse') ||
+    headers.includes('storecode') ||
+    headers.includes('balanceapproved') ||
+    headers.includes('qty') ||
+    headers.includes('modified_dt')
+
+  // Master: header mengandung 'upc' dan banyak kolom (>=14)
+  const isMaster =
+    headers.includes('upc') &&
+    headers.includes('brand code') ||
+    headers.includes('brand name') ||
+    headerCols.length >= 14
+
+  if (isInventory) {
+    // Inventory: selalu kolom ke-2 (index 1) — ItemNumber atau SKU
     const label = headerCols[1] || 'Kolom 2'
     return { idx: 1, label }
   }
 
-  if (fn.includes('master') || fn.includes('mst_') || fn.includes('_mst') ||
-      fn.includes('master_')) {
-    // Master: selalu kolom ke-2 (index 1)
+  if (isMaster) {
+    // Master: selalu kolom ke-2 (index 1) — PARENT/GENERIC/SPU
+    const label = headerCols[1] || 'Kolom 2'
+    return { idx: 1, label }
+  }
+
+  // Fallback ke nama file jika header tidak cukup jelas
+  const fn = (filename || '').toLowerCase()
+  if (fn.includes('inventory') || fn.includes('inv_') || fn.includes('iab')) {
+    const label = headerCols[1] || 'Kolom 2'
+    return { idx: 1, label }
+  }
+  if (fn.includes('master') || fn.includes('mst_')) {
     const label = headerCols[1] || 'Kolom 2'
     return { idx: 1, label }
   }
